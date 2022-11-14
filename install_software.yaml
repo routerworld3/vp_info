@@ -1,0 +1,16 @@
+---
+  - name: Install software, prior to running STIG Role
+    hosts: all
+    remote_user: ec2-user
+    become: yes
+    become_user: root
+    vars:
+      ansible_become: yes
+      ansible_become_user: root
+      ansible_become_password: BigNavyGrayShip2021
+      ansible_become_method: su 
+
+    tasks:
+    - name:  Install Official RHEL 8 STIG software
+      command: /usr/bin/ansible-galaxy install  RedHatOfficial.rhel8_stig
+

@@ -1,0 +1,12 @@
+1.  Use Terraform to create the server.   
+2.  Run an initial software update, and install base tools 
+     and AWS tools / Reboot (save.yaml,initial.yaml) 
+3.  Run a process to create filesystems which are necessary for 
+   the STIG process / Reboot(create_file_systems.yaml)
+4.  Install Software (install_software.yaml) Install RedHatOfficial ansible-galaxy
+  a
+  b
+  c
+5.  Run STIG Role to secure server. (stig_disa.yaml)
+6.  Run Post STIG to make adjustments. (post_stig.yaml)
+7.  Scan server with SCC for status.  

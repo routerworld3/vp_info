@@ -1,0 +1,63 @@
+---
+  - name: Initial Package Install 
+    hosts: all
+    remote_user: ec2-user
+    become: yes
+    become_user: root
+    vars:
+      ansible_become: yes
+      ansible_become_user: root
+      ansible_become_method: sudo
+    tasks: 
+      - name: Change user password
+        user:
+          name: root
+          update_password: always
+          password: "{{ newpassword|password_hash('sha512') }}"
+      - name: Change user password
+        user:
+          name: ec2-user
+          update_password: always
+          password: "{{ newpassword|password_hash('sha512') }}"
+      - name: DNF update the system
+        dnf:
+          name:  "*"
+          state: latest
+      - name: Base Software Installation
+        become: yes
+        dnf:
+             name:
+               - adcli
+               - ansible
+               - binutils
+               - git
+               - krb5-server
+               - krb5-workstation
+               - lsof
+               - lvm2
+               - oddjob
+               - net-tools
+               - oddjob-mkhomedir
+               - openldap-clients
+               - python3
+               - realmd
+               - samba-common
+               - samba-common-tools
+               - sssd
+               - tcpdump
+               - unzip
+               - vim
+               - wget
+               - xauth
+             state: latest
+      - name: Install AWS CLI 
+        become: yes
+        shell: cd /root ; curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" ; unzip awscliv2.zip ; ./aws/install --update 
+      - name: Install AWS SSM Agent
+        ansible.builtin.dnf:
+          disable_gpg_check: yes
+          name: 'https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm'
+          state: present
+      - name: Reboot after update
+        reboot: 
+
