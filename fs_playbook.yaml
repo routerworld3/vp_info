@@ -1,0 +1,122 @@
+---
+  - name: Create Physical Volume, Volume Group, Logical Volume, and Filesystems for STIG requirements. 
+    hosts: all
+    remote_user: ec2-user
+    become: yes
+    become_user: root
+    vars:
+      ansible_become: yes
+      ansible_become_user: root
+      ansible_become_method: sudo
+      #depending on the system change block device 
+      block_device: nvme1n1
+    tasks:
+### Create FSTAB entries
+      - name: /tmp fstab entry
+        ansible.posix.mount:
+          path: /tmp
+          src: /dev/stig/tmp
+          fstype: ext4
+          opts: defaults,nosuid
+          state: present
+      - name: /dev/stig/home fstab entry
+        ansible.posix.mount:
+          path: /home
+          src:  /dev/stig/home
+          fstype: ext4
+          opts: rw,nosuid,nodev,noexec,seclabel
+          state: present
+      - name: /dev/stig/var fstab entry
+        ansible.posix.mount:
+          path: /var
+          src:  /dev/stig/var
+          fstype: ext4
+          opts: rw,nosuid,nodev,seclabel
+          state: present
+      - name: /dev/stig/var_tmp fstab entry
+        ansible.posix.mount:
+          path: /var/tmp
+          src:  /dev/stig/var_tmp
+          fstype: ext4
+          opts: rw,nosuid,nodev,noexec,seclabel
+          state: present
+      - name: /dev/stig/var_log fstab entry
+        ansible.posix.mount:
+          path: /var/log
+          src:  /dev/stig/var_log
+          fstype: ext4
+          opts: rw,nosuid,nodev,noexec,seclabel
+          state: present
+      - name: /dev/stig/var_log_audit fstab entry
+        ansible.posix.mount:
+          path: /var/log/audit
+          src:  /dev/stig/var_log_audit
+          fstype: ext4
+          opts: rw,nosuid,nodev,noexec,seclabel
+          state: present
+###### LVM Section 
+      - name: Create Volume Group STIG on PVS
+        community.general.lvg: 
+          vg:  stig
+          pvs: /dev/{block_device}
+#### Create Logical Volume on VG stig
+      - name: Create a logical volume for tmp 
+        community.general.lvol:
+          vg:  stig
+          lv: tmp
+          size: 1G
+      - name: Create a logical volume for home
+        community.general.lvol:
+          vg:  stig
+          lv: home
+          size: 1G
+      - name: Create a logical volume for var
+        community.general.lvol:
+          vg:  stig 
+          lv: var 
+          size: 1G
+      - name: Create a logical volume for var_tmp
+        community.general.lvol:
+          vg:  stig
+          lv: var_tmp
+          size: 1G
+      - name: Create a logical volume for var_log
+        community.general.lvol:
+          vg:  stig
+          lv: var_log
+          size: 1G
+      - name: Create a logical volume for var_log_audit
+        community.general.lvol:
+          vg:  stig
+          lv: var_log_audit
+          size: 1G
+#### Create FileSystem 
+      - name: Create file System /dev/stig/tmp
+        community.general.filesystem:
+          fstype: ext4
+          dev: /dev/stig/tmp
+      - name: Create File System /dev/stig/home
+        community.general.filesystem:
+          fstype: ext4
+          dev: /dev/stig/home
+      - name: Create File System  /dev/stig/var
+        community.general.filesystem:
+          fstype: ext4
+          dev: /dev/stig/var
+      - name: Create File System /dev/stig/var_tmp
+        community.general.filesystem:
+          fstype: ext4
+          dev: /dev/stig/var_tmp
+      - name: Create File System /dev/stig/var_log
+        community.general.filesystem:
+          fstype: ext4
+          dev: /dev/stig/var_log
+      - name: Create File System /dev/stig/var_log_audit
+        community.general.filesystem:
+          fstype: ext4
+          dev: /dev/stig/var_log_audit
+### Shell Script 
+      - name: Run Bash Scripts to Adjust the filesystem
+        script: fix_base_filesystem.sh 
+
+
